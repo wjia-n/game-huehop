@@ -65,7 +65,8 @@ class HopParticle {
 }
 
 class HopPopup {
-  final double x, y;
+  final double x;
+  double y;
   final String text;
   final Color color;
   double life = 1.0;
