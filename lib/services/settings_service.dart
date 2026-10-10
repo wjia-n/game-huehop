@@ -57,7 +57,7 @@ class HueHopSettings extends ChangeNotifier {
   int gateStyle = 0;
   int difficulty = 0;
   String mode = 'endless';
-  bool isPro = false;
+  bool isPro = true; // everything unlocked — no Pro version
   int gamesPlayed = 0;
   final Map<String, int> bestScores = {}; // '<mode>_<difficulty>' -> score
 
@@ -160,7 +160,7 @@ class HueHopSettings extends ChangeNotifier {
     difficulty = (p.getInt(_kDifficulty) ?? 0).clamp(0, 2);
     final m = p.getString(_kMode);
     mode = (m == 'attack') ? 'attack' : 'endless';
-    isPro = p.getBool(_kIsPro) ?? false;
+    isPro = true; // everything unlocked
     gamesPlayed = p.getInt(_kGames) ?? 0;
     for (final mm in ['endless', 'attack']) {
       for (int d = 0; d < 3; d++) {

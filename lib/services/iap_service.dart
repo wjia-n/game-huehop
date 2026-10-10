@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
-/// Real Play Billing store for Hue Hop: Pro unlock + tip jar.
+/// Real Play Billing tip jar for Hue Hop: Tip jar (all content is free and unlocked).
 ///
 /// Product IDs (the user creates these in Play Console):
 /// - `huehopro` — one-time NON-CONSUMABLE: unlocks Pro forever.
@@ -16,7 +16,8 @@ class StoreService {
   static const proId = 'huehopro';
   static const coffeeId = 'huehopcoffee';
   static const chocolateId = 'huehopchocolate';
-  static const productIds = {proId, coffeeId, chocolateId};
+  static const productIds = {coffeeId, chocolateId};
+  ProductDetails? get proProduct => null; // Pro removed
 
   final InAppPurchase _iap = InAppPurchase.instance;
 
@@ -29,7 +30,7 @@ class StoreService {
 
   /// Callbacks the UI wires up.
   final ValueNotifier<String?> lastThanks = ValueNotifier(null);
-  final ValueNotifier<bool> proPurchased = ValueNotifier(false);
+  final ValueNotifier<bool> proPurchased = ValueNotifier(true); // everything unlocked
   final ValueNotifier<bool> purchaseInProgress = ValueNotifier(false);
   final ValueNotifier<String?> purchaseError = ValueNotifier(null);
 
@@ -38,7 +39,6 @@ class StoreService {
   /// the UI listens to this to rebuild at exactly the right moment.
   final ValueNotifier<int> refresh = ValueNotifier(0);
 
-  ProductDetails? get proProduct => _byId(proId);
   ProductDetails? get coffeeProduct => _byId(coffeeId);
   ProductDetails? get chocolateProduct => _byId(chocolateId);
 
@@ -87,10 +87,7 @@ class StoreService {
     for (final p in list) {
       if (p.status == PurchaseStatus.purchased ||
           p.status == PurchaseStatus.restored) {
-        if (p.productID == proId) {
-          proPurchased.value = true;
-          lastThanks.value = 'Welcome to Hue Hop PRO!';
-        } else if (p.productID == chocolateId) {
+        if (p.productID == chocolateId) {
           lastThanks.value = 'Thank you for the chocolate!';
         } else if (p.productID == coffeeId) {
           lastThanks.value = 'Thank you for the coffee!';
@@ -112,17 +109,9 @@ class StoreService {
     }
   }
 
+  
   Future<void> buyPro() async {
-    final p = proProduct;
-    if (p == null) return;
-    purchaseError.value = null;
-    purchaseInProgress.value = true;
-    try {
-      await _iap.buyNonConsumable(purchaseParam: PurchaseParam(productDetails: p));
-    } catch (_) {
-      purchaseInProgress.value = false;
-      purchaseError.value = 'Purchase failed — please try again.';
-    }
+    // Pro removed.
   }
 
   Future<void> buyTip(ProductDetails product) async {
@@ -152,7 +141,6 @@ class StoreService {
   Future<void> dispose() async {
     await _sub?.cancel();
     lastThanks.dispose();
-    proPurchased.dispose();
     purchaseInProgress.dispose();
     purchaseError.dispose();
     refresh.dispose();
