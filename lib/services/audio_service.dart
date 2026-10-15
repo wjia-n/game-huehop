@@ -18,6 +18,9 @@ import 'package:audioplayers/audioplayers.dart';
 ///   resumes exactly where it left off instead of restarting or dying.
 /// - Every public method catches player errors; audio can never crash the app.
 class HueHopAudio {
+  /// Per-game pitch character (huehop): 0.87x. Makes SFX unique.
+  static const double _pitchMul = 0.870;
+
   static const int _rate = 22050;
   final AudioPlayer _sfx = AudioPlayer();
   final AudioPlayer _music = AudioPlayer();
@@ -104,6 +107,8 @@ class HueHopAudio {
 
   List<double> _tone(double freq, double secs,
       {double freqEnd = 0, double attack = 0.02, double harmonics = 0.25}) {
+    freq *= _pitchMul;
+    freqEnd *= _pitchMul;
     final n = (_rate * secs).round();
     final out = List<double>.filled(n, 0);
     for (int i = 0; i < n; i++) {
@@ -187,42 +192,39 @@ class HueHopAudio {
       _cache.putIfAbsent(key, () => _wav(build()));
 
   Uint8List _menuBytes() => _clip('music_menu', () {
-        // Bouncy toy-box waltz: plucked C–F–G–C, 12s loop.
-        final n = (_rate * 12).round();
-        final out = List<double>.from(_padChord([261.63, 329.63], 12.0));
-        final plucks = [523.25, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 440.0];
-        for (int k = 0; k < plucks.length; k++) {
-          final start = (n * k / plucks.length).round();
-          final tone = _tone(plucks[k], 0.55, harmonics: 0.4);
-          for (int i = 0; i < tone.length && start + i < n; i++) {
-            out[start + i] += tone[i] * 0.4;
-          }
+        // G arpeggiated 0 – 2 – 5 – 4, 16s loop. Unique to huehop.
+        final notes = [196.00, 246.94, 293.67, 246.94, 246.94, 293.67, 370.00, 293.67, 329.63, 392.00, 493.89, 392.00, 293.67, 370.00, 440.01, 370.00];
+        final out = <double>[];
+        final noteLen = 16.0 / notes.length;
+        for (final n in notes) {
+          out.addAll(_tone(n, noteLen * 0.9, harmonics: 0.3));
+          final gap = List<double>.filled((_rate * noteLen * 0.1).round(), 0);
+          out.addAll(gap);
+        }
+        // Soft pad underneath
+        final pad = _padChord([196.00, 246.94, 293.67], 16.0);
+        for (int i = 0; i < out.length && i < pad.length; i++) {
+          out[i] += pad[i] * 0.3;
         }
         return out;
       });
 
+
   Uint8List _gameBytes() => _clip('music_game', () {
-        // Upbeat hopping pentatonic over a bouncy bass, 12s loop.
-        final n = (_rate * 12).round();
-        final out = List<double>.filled(n, 0.0);
-        final bass = [130.81, 130.81, 174.61, 196.0, 196.0, 174.61, 130.81, 98.0];
-        for (int k = 0; k < bass.length; k++) {
-          final start = (n * k / bass.length).round();
-          final tone = _tone(bass[k], 0.6, harmonics: 0.3);
-          for (int i = 0; i < tone.length && start + i < n; i++) {
-            out[start + i] += tone[i] * 0.35;
-          }
-        }
-        final melody = [392.0, 523.25, 587.33, 523.25, 659.25, 587.33, 523.25, 392.0];
-        for (int k = 0; k < melody.length; k++) {
-          final start = ((n * (k + 0.5) / melody.length).round());
-          final tone = _tone(melody[k], 0.4, harmonics: 0.35);
-          for (int i = 0; i < tone.length && start + i < n; i++) {
-            out[start + i] += tone[i] * 0.3;
-          }
+        // G 0 – 2 – 5 – 4 warm pad, 16s loop. Unique to huehop.
+        final seq = [
+          [196.00, 246.94, 293.67],
+          [246.94, 293.67, 370.00],
+          [329.63, 392.00, 493.89],
+          [293.67, 370.00, 440.01]
+        ];
+        final out = <double>[];
+        for (final chord in seq) {
+          out.addAll(_padChord(chord, 4.0));
         }
         return out;
       });
+
 
   // ------------------------------------------------------------------ SFX
   Future<void> _play(Uint8List bytes) async {
