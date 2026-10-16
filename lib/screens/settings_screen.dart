@@ -8,6 +8,7 @@ import '../cheat_menu.dart';
 import 'pro_screen.dart';
 import 'tutorial_overlay.dart';
 import '../services/iap_service.dart';
+import '../transfer/transfer_ui.dart';
 
 /// Settings: renameable profile, audio, 14 themes, 10 ball styles,
 /// 8 gate styles, Pro custom creator.
@@ -87,6 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+              TransferSaveTile(gameSlug: 'huehop'),
                     // Player name
                     ToyUi.panel(
                       theme: t,
