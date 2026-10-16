@@ -7,6 +7,8 @@ import '../services/settings_service.dart';
 import '../theme/ball_styles.dart';
 import '../theme/huehop_themes.dart';
 import '../theme/toy_ui.dart';
+import '../cheat_menu.dart';
+import 'tutorial_overlay.dart';
 
 /// Game screen: renders [HueHopEngine] (which owns ALL state/phases +
 /// watchdog). Tap = hop, drag horizontally = steer.
@@ -25,6 +27,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   late final HueHopEngine _engine;
   bool _reviewAsked = false;
+  bool _showTutorial = false;
   String? _overHeadline;
   String? _overSubline;
 
@@ -34,6 +37,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _engine = HueHopEngine();
     _engine.onEvent = _onEngineEvent;
+    // Show the how-to-play overlay on first launch. The round cannot start
+    // (and the player cannot fail) until it is dismissed.
+    _showTutorial = !_s.tutorialSeen;
   }
 
   @override
@@ -130,6 +136,17 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
+  void _dismissTutorial() {
+    _audio.gameStart();
+    _s.setTutorialSeen(true);
+    setState(() {
+      _showTutorial = false;
+      _overHeadline = null;
+      _overSubline = null;
+    });
+    _engine.startRun();
+  }
+
   void _start() {
     // Every run start gets the start fanfare — first run and replays alike.
     _audio.gameStart();
@@ -152,6 +169,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTapDown: (_) {
+                if (_showTutorial) return; // tutorial must be dismissed first
                 if (_engine.phase == HopPhase.idle) {
                   _start();
                 } else {
@@ -215,11 +233,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
-            // Tap-to-start card
+            // Tap-to-start card (hidden while the tutorial is up)
             AnimatedBuilder(
               animation: _engine,
-              builder: (_, _) => _engine.phase == HopPhase.idle
-                  ? Center(
+              builder: (_, _) =>
+                  _engine.phase == HopPhase.idle && !_showTutorial
+                      ? Center(
                       child: ToyUi.panel(
                         theme: t,
                         child: Column(
@@ -290,6 +309,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                       ),
                     ],
                   ),
+                ),
+              ),
+            // First-launch tutorial: the round cannot start until dismissed.
+            if (_showTutorial)
+              Positioned.fill(
+                child: TutorialOverlay(
+                  theme: t,
+                  ballStyle: _s.ballStyle,
+                  gateStyle: _s.gateStyle,
+                  onDone: _dismissTutorial,
                 ),
               ),
           ],
@@ -363,6 +392,35 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 },
+              ),
+              const SizedBox(height: 12),
+              // Discreet debug menu: 5 rapid taps on the version label.
+              Builder(
+                builder: (dctx) => CheatMenuTrigger(
+                  callbacks: CheatCallbacks(
+                    onSkipLevel: () {
+                      // Skip the current round: start a fresh one.
+                      Navigator.of(dctx).pop();
+                      setState(() {
+                        _overHeadline = null;
+                        _overSubline = null;
+                      });
+                      _engine.startRun();
+                    },
+                    onInstantWin: () {
+                      Navigator.of(dctx).pop();
+                      _engine.debugInstantWin();
+                    },
+                    onInfiniteLives: _engine.mode == 'attack'
+                        ? () {
+                            _engine.lives = 99;
+                            toySnack(context, 'Infinite lives on ❤️', t);
+                          }
+                        : null,
+                  ),
+                  child: Text('v1.1.0',
+                      style: ToyUi.body(11, theme: t, color: t.subtext)),
+                ),
               ),
             ],
           ),

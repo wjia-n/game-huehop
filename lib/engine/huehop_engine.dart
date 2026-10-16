@@ -254,6 +254,13 @@ class HueHopEngine extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Cheat/debug: end the current run immediately as a win (records score).
+  /// Engine-owned, same terminal path as a timeout.
+  void debugInstantWin() {
+    if (phase != HopPhase.playing) return;
+    _finishRun(timedOut: true);
+  }
+
   // --- simulation ----------------------------------------------------------
   void _cancelSim() {
     _sim?.cancel();

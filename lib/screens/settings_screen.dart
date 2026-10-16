@@ -4,7 +4,9 @@ import '../services/settings_service.dart';
 import '../theme/ball_styles.dart';
 import '../theme/huehop_themes.dart';
 import '../theme/toy_ui.dart';
+import '../cheat_menu.dart';
 import 'pro_screen.dart';
+import 'tutorial_overlay.dart';
 import '../services/iap_service.dart';
 
 /// Settings: renameable profile, audio, 14 themes, 10 ball styles,
@@ -436,6 +438,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ],
                           ),
                         ],
+                      ),
+                    ),
+                    // How to play
+                    ToyUi.panel(
+                      theme: t,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('HOW TO PLAY',
+                                    style: ToyUi.label(13, theme: t)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Watch the quick animated demo again.',
+                                  style: ToyUi.body(13, theme: t),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ToyUi.button(
+                            theme: t,
+                            text: '❓ Demo',
+                            fontSize: 15,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 18, vertical: 12),
+                            onTap: () {
+                              _audio.click();
+                              TutorialOverlay.showDialogReuse(
+                                context,
+                                theme: t,
+                                ballStyle: _s.ballStyle,
+                                gateStyle: _s.gateStyle,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Version label: 5 rapid taps unlocks the debug menu.
+                    Center(
+                      child: CheatMenuTrigger(
+                        callbacks: CheatCallbacks(
+                          onUnlockAll: () {
+                            toySnack(context,
+                                'Everything is already unlocked ✨', t);
+                          },
+                          onResetGame: () async {
+                            await _s.resetAll();
+                            _nameCtrl.text = _s.playerName;
+                            if (context.mounted) {
+                              toySnack(
+                                  context, 'Game reset to a fresh start 🔄', t);
+                            }
+                          },
+                        ),
+                        child: Text('Hue Hop v1.1.0',
+                            style:
+                                ToyUi.body(11, theme: t, color: t.subtext)),
                       ),
                     ),
                     const SizedBox(height: 24),

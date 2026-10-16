@@ -28,6 +28,7 @@ class HueHopSettings extends ChangeNotifier {
   static const _kMode = 'huehop_mode'; // 'endless' | 'attack'
   static const _kIsPro = 'huehop_is_pro';
   static const _kGames = 'huehop_games_played';
+  static const _kTutorialSeen = 'huehop_tutorial_seen';
   static const _kBestPrefix = 'huehop_best_'; // + '<mode>_<difficulty>'
   static const _kCustomPrefix = 'huehop_custom_';
 
@@ -59,6 +60,9 @@ class HueHopSettings extends ChangeNotifier {
   String mode = 'endless';
   bool isPro = true; // everything unlocked — no Pro version
   int gamesPlayed = 0;
+
+  /// Whether the how-to-play overlay has been seen (shown on first launch).
+  bool tutorialSeen = false;
   final Map<String, int> bestScores = {}; // '<mode>_<difficulty>' -> score
 
   /// Custom-creator colors (ARGB). Pro feature.
@@ -162,6 +166,7 @@ class HueHopSettings extends ChangeNotifier {
     mode = (m == 'attack') ? 'attack' : 'endless';
     isPro = true; // everything unlocked
     gamesPlayed = p.getInt(_kGames) ?? 0;
+    tutorialSeen = p.getBool(_kTutorialSeen) ?? false;
     for (final mm in ['endless', 'attack']) {
       for (int d = 0; d < 3; d++) {
         final b = p.getInt('$_kBestPrefix${mm}_$d') ?? 0;
@@ -315,6 +320,34 @@ class HueHopSettings extends ChangeNotifier {
     customColors = Map.of(_defaultCustomColors);
     notifyListeners();
     await _save();
+  }
+
+  /// Persist that the how-to-play overlay has been seen.
+  Future<void> setTutorialSeen(bool v) async {
+    tutorialSeen = v;
+    notifyListeners();
+    await _prefs?.setBool(_kTutorialSeen, v);
+  }
+
+  /// Full reset: profile, scores, themes, styles back to defaults.
+  /// Used by the debug cheat menu ("unstick" recovery).
+  Future<void> resetAll() async {
+    musicOn = true;
+    sfxOn = true;
+    volume = 0.8;
+    _playerNames
+      ..clear()
+      ..add(defaultName);
+    themeId = 'toybox';
+    ballStyle = 0;
+    gateStyle = 0;
+    difficulty = 0;
+    mode = 'endless';
+    gamesPlayed = 0;
+    bestScores.clear();
+    customColors = Map.of(_defaultCustomColors);
+    await _save();
+    notifyListeners();
   }
 
   Future<void> setPro(bool v) async {
