@@ -230,7 +230,7 @@ class HueHopAudio {
   Future<void> _play(Uint8List bytes) async {
     if (!sfxOn || _disposed) return;
     try {
-      await _sfx.play(BytesSource(bytes));
+      await _sfx.play(BytesSource(bytes).timeout(const Duration(seconds: 2), onTimeout: () {}));
     } catch (_) {}
   }
 

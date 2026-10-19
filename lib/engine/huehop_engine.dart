@@ -7,7 +7,7 @@ import '../theme/huehop_themes.dart';
 /// Phases owned ENTIRELY by the engine. The UI only renders.
 /// Every non-terminal phase has a live engine-owned timer: a phase can never
 /// get stuck by construction, and the watchdog recovers a dead sim timer.
-enum HopPhase { idle, playing, paused, oof, splatting, over }
+enum HopPhase { idle, ready, playing, paused, oof, splatting, over }
 
 /// Events the engine emits for juicy UI/audio feedback. No silent scoring.
 enum HopEventType {
@@ -99,6 +99,8 @@ class HueHopEngine extends ChangeNotifier {
 
   // --- live state ----------------------------------------------------------
   HopPhase phase = HopPhase.idle;
+  double readyTimeLeft = 0.0; // grace period countdown
+  static const double readyDuration = 2.5; // seconds of hold at start
   double ballX = 0, ballY = 0, ballVy = 0;
   double camY = 0;
   double simTime = 0;
@@ -205,9 +207,28 @@ class HueHopEngine extends ChangeNotifier {
       _spawnGate();
     }
     _ballColor = _rng.nextInt(colorCount);
-    phase = HopPhase.playing;
+    // Grace period: ball holds still for 2.5s so the player can orient.
+    // Taps during ready are ignored; the sim starts after the countdown.
+    phase = HopPhase.ready;
+    readyTimeLeft = readyDuration;
     _lastStep = DateTime.now();
-    _sim = Timer.periodic(const Duration(milliseconds: 16), (_) => _step(1 / 60));
+    _sim = Timer.periodic(const Duration(milliseconds: 16), (_) => _stepReady(1 / 60));
+    notifyListeners();
+  }
+
+  /// Grace-period ticker: counts down, then hands off to the real sim.
+  /// The ball stays frozen; gates don't move; player can see the layout.
+  void _stepReady(double dt) {
+    if (_disposed || phase != HopPhase.ready) return;
+    readyTimeLeft -= dt;
+    if (readyTimeLeft <= 0) {
+      readyTimeLeft = 0;
+      // Hand off to live play.
+      _cancelSim();
+      phase = HopPhase.playing;
+      _lastStep = DateTime.now();
+      _sim = Timer.periodic(const Duration(milliseconds: 16), (_) => _step(1 / 60));
+    }
     notifyListeners();
   }
 

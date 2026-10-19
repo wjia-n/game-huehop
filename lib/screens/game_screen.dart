@@ -263,6 +263,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     )
                   : const SizedBox.shrink(),
             ),
+            // Grace-period countdown overlay
+            AnimatedBuilder(
+              animation: _engine,
+              builder: (_, _) => _engine.phase == HopPhase.ready
+                  ? Positioned.fill(child: _readyOverlay(t))
+                  : const SizedBox.shrink(),
+            ),
             // OOF banner (attack life lost)
             AnimatedBuilder(
               animation: _engine,
@@ -337,6 +344,47 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         child: Text(text,
             style: ToyUi.title(14, theme: t)),
       );
+
+  /// Grace-period overlay: big countdown so the player can orient
+  /// before the ball starts moving.
+  Widget _readyOverlay(HueHopThemeDef t) {
+    final secs = _engine.readyTimeLeft.ceil().clamp(1, 3);
+    return Container(
+      color: Colors.black.withValues(alpha: 0.35),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$secs',
+              style: TextStyle(
+                fontSize: 84,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Get ready…',
+              style: ToyUi.title(22, theme: t),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Tap to hop through matching gates',
+              style: ToyUi.body(14, theme: t),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _showPause(HueHopThemeDef t) {
     if (_engine.phase != HopPhase.playing) return;
