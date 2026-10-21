@@ -2,8 +2,7 @@ name: huehop
 description: Hue Hop by Wajiha - hop your bouncy ball through color-matched gates!
 publish_to: 'none' # private game, never publish to pub.dev
 
-version: 1.1.0+2
-
+version: 1.1.0+3
 environment:
   sdk: ^3.13.5
 
