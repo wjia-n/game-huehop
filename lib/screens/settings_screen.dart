@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../services/audio_service.dart';
 import '../services/settings_service.dart';
@@ -229,7 +230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           onTap: () {
                             if (locked) {
                               _audio.invalid();
-                              _goPro('That theme is a PRO treat 🎨');
+                              _goPro(defaultTargetPlatform == TargetPlatform.iOS ? 'That theme is included for everyone 🎨' : 'That theme is a PRO treat 🎨');
                               return;
                             }
                             _audio.click();
@@ -388,7 +389,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               Text('CUSTOM CREATOR',
                                   style: ToyUi.label(13, theme: t)),
                               const Spacer(),
-                              if (!_s.isPro) const Text('🔒 PRO',
+                              if (!_s.isPro) Text(defaultTargetPlatform == TargetPlatform.iOS ? '🔒' : '🔒 PRO',
                                   style: TextStyle(fontSize: 14)),
                             ],
                           ),
@@ -396,7 +397,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             _s.isPro
                                 ? 'Design your own ball + playground colors.'
-                                : 'PRO unlocks your own color lab.',
+                                : defaultTargetPlatform == TargetPlatform.iOS
+                                    ? 'Your own color lab is included.'
+                                    : 'PRO unlocks your own color lab.',
                             style: ToyUi.body(13, theme: t),
                           ),
                           const SizedBox(height: 8),
@@ -417,7 +420,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   onTap: () {
                                     if (!_s.isPro) {
                                       _goPro(
-                                          'The custom creator is a PRO treat 🎨');
+                                          defaultTargetPlatform == TargetPlatform.iOS ? 'The custom creator is included for everyone 🎨' : 'The custom creator is a PRO treat 🎨');
                                       return;
                                     }
                                     _audio.click();
@@ -531,7 +534,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onTap: () {
         if (locked) {
           _audio.invalid();
-          _goPro('The custom creator is a PRO treat 🎨');
+          _goPro(defaultTargetPlatform == TargetPlatform.iOS ? 'The custom creator is included for everyone 🎨' : 'The custom creator is a PRO treat 🎨');
           return;
         }
         _audio.click();
@@ -629,7 +632,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   GestureDetector(
                     onTap: () {
                       if (!_s.isPro) {
-                        _goPro('The custom creator is a PRO treat 🎨');
+                        _goPro(defaultTargetPlatform == TargetPlatform.iOS ? 'The custom creator is included for everyone 🎨' : 'The custom creator is a PRO treat 🎨');
                         return;
                       }
                       _audio.click();
@@ -679,7 +682,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () {
               if (locked) {
                 _audio.invalid();
-                _goPro('That style is a PRO treat ✨');
+                _goPro(defaultTargetPlatform == TargetPlatform.iOS ? 'That style is included for everyone ✨' : 'That style is a PRO treat ✨');
                 return;
               }
               _audio.click();

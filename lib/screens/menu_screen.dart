@@ -193,7 +193,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                       ),
                                     );
                                   },
-                                  child: Text('🔒 Wild is PRO',
+                                  child: Text(defaultTargetPlatform == TargetPlatform.iOS ? '🔒 Wild' : '🔒 Wild is PRO',
                                       style: ToyUi.body(12,
                                           theme: t, color: t.accent)),
                                 ),
@@ -380,7 +380,7 @@ class _MenuScreenState extends State<MenuScreen> {
       onTap: () {
         if (locked) {
           _audio.invalid();
-          toySnack(context, 'Wild difficulty is a PRO perk 🔥', t);
+          toySnack(context, defaultTargetPlatform == TargetPlatform.iOS ? 'Wild difficulty is included for everyone 🔥' : 'Wild difficulty is a PRO perk 🔥', t);
           return;
         }
         _audio.click();
