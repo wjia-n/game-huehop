@@ -269,7 +269,7 @@ class _MenuScreenState extends State<MenuScreen> {
                         ToyUi.iconButton(
                             theme: t,
                             icon: _s.isPro ? Icons.workspace_premium : Icons.lock_open,
-                            tooltip: 'Hue Hop PRO',
+                            tooltip: defaultTargetPlatform == TargetPlatform.iOS ? 'Gold Star' : 'Hue Hop PRO',
                             onTap: () {
                               _audio.click();
                               Navigator.of(context).push(
